@@ -2,82 +2,60 @@ import sys
 input = sys.stdin.readline
 
 N = int(input())
-studentNum = list()
-studentLike = list()
+student = list()
 studentDict = dict()
+seat = [[0 for _ in range(N)] for _ in range(N)]
+
+dx = [0, 0, -1, 1]
+dy = [-1, 1, 0, 0]
 
 for _ in range(N * N):
     info = list(map(int, input().split()))
-    studentNum.append(info[0])
-    studentLike.append(info[1:])
+    student.append(info)
     studentDict[info[0]] = info[1:]
-
-classroom = [[0 for _ in range(N)] for _ in range(N)]
 
 for num in range(N * N):
     row, col = 0, 0
-    likeCount, emptyCount = -1, -1
+    maxLike, maxEmpty = -1, -1
 
     for i in range(N):
         for j in range(N):
-
-            if classroom[i][j] != 0:
+            if seat[i][j] != 0:
                 continue
 
-            tmpLikeCount, tmpEmptyCount = 0, 0
-            if i != 0:
-                if classroom[i - 1][j] == 0:
-                    tmpEmptyCount += 1
-                elif classroom[i - 1][j] in studentLike[num]:
-                    tmpLikeCount += 1
-            if i != N - 1:
-                if classroom[i + 1][j] == 0:
-                    tmpEmptyCount += 1
-                elif classroom[i + 1][j] in studentLike[num]:
-                    tmpLikeCount += 1
-            if j != 0:
-                if classroom[i][j - 1] == 0:
-                    tmpEmptyCount += 1
-                elif classroom[i][j - 1] in studentLike[num]:
-                    tmpLikeCount += 1
-            if j != N - 1:
-                if classroom[i][j + 1] == 0:
-                    tmpEmptyCount += 1
-                elif classroom[i][j + 1] in studentLike[num]:
-                    tmpLikeCount += 1
+            tmpLike, tmpEmpty = 0, 0
+            for d in range(4):
+                x = j + dx[d]
+                y = i + dy[d]
 
-            if tmpLikeCount > likeCount:
-                likeCount = tmpLikeCount
-                emptyCount = tmpEmptyCount
+                if 0 <= x < N and 0 <= y < N:
+                    if seat[y][x] == 0:
+                        tmpEmpty += 1
+                    elif seat[y][x] in student[num][1:]:
+                        tmpLike += 1
+
+            if tmpLike > maxLike:
+                maxLike, maxEmpty = tmpLike, tmpEmpty
                 row, col = i, j
-            elif tmpLikeCount == likeCount and tmpEmptyCount > emptyCount:
-                likeCount = tmpLikeCount
-                emptyCount = tmpEmptyCount
+            elif tmpLike == maxLike and tmpEmpty > maxEmpty:
+                maxLike, maxEmpty = tmpLike, tmpEmpty
                 row, col = i, j
-            
-    classroom[row][col] = studentNum[num]
+
+    seat[row][col] = student[num][0]
 
 score = 0
 for i in range(N):
     for j in range(N):
         cnt = 0
 
-        if i != 0 and classroom[i - 1][j] in studentDict[classroom[i][j]]:
-            cnt += 1
-        if i != N - 1 and classroom[i + 1][j] in studentDict[classroom[i][j]]:
-            cnt += 1
-        if j != 0 and classroom[i][j - 1] in studentDict[classroom[i][j]]:
-            cnt += 1
-        if j != N - 1 and classroom[i][j + 1] in studentDict[classroom[i][j]]:
-            cnt += 1
+        for d in range(4):
+            x = j + dx[d]
+            y = i + dy[d]
+            if 0 <= x < N and 0 <= y < N:
+                if seat[y][x] in studentDict[seat[i][j]]:
+                    cnt += 1
 
-        if cnt == 4:
-            score += 1000
-        elif cnt == 3:
-            score += 100
-        elif cnt == 2:
-            score += 10
-        elif cnt == 1:
-            score += 1
+        if cnt > 0:
+            score += 10 ** (cnt - 1)
 
 print(score)
